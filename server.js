@@ -9,12 +9,24 @@ const bcrypt = require("bcrypt");
 const app = express();
 const db = new PrismaClient();
 
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://p2t32.netlify.app"
+];
+
 app.use(
   cors({
-    origin: "http://localhost:5173",
+    origin: (origin, callback) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+      } else {
+        callback(new Error("Not allowed by CORS"));
+      }
+    },
     credentials: true,
   })
 );
+
 
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
