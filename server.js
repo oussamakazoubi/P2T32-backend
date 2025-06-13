@@ -3,7 +3,7 @@ const express = require("express");
 const session = require("express-session");
 const cors = require("cors");
 const { PrismaClient } = require("@prisma/client");
-const authMiddleware = require("./middleware/auth");
+const authMiddleware = require("./src/middleware/auth");
 const bcrypt = require("bcrypt");
 
 const app = express();
