@@ -31,18 +31,22 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.set("trust proxy", 1); // ✅ Required for secure cookies on Render
+
 app.use(
   session({
     secret: process.env.JWT_SECRET || "secret_key",
     resave: false,
     saveUninitialized: false,
+    proxy: true, // ✅ critical!
     cookie: {
-      secure: false,
+      secure: true,      // ✅ use secure cookies (https)
       httpOnly: true,
       sameSite: "lax",
     },
   })
 );
+
 
 // Middleware admin only
 function adminOnly(req, res, next) {
