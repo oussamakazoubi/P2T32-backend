@@ -42,7 +42,7 @@ app.use(
     cookie: {
       secure: true,      // ✅ use secure cookies (https)
       httpOnly: true,
-      sameSite: "lax",
+      sameSite: "none",
     },
   })
 );
