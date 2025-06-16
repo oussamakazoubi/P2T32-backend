@@ -29,6 +29,8 @@ async function main() {
     erwinAdmin,
     samiSupervisor,
     linaClient,
+    jbAdmin,
+    globalSupervisor
   ] = await Promise.all([
     prisma.user.create({ data: { firstName: "Admin", lastName: "Root", email: "admin@example.com", password: await hash("admin123"), role: "ADMIN" } }),
     prisma.user.create({ data: { firstName: "Claire", lastName: "Supervise", email: "supervisor@example.com", password: await hash("super123"), role: "SUPERVISOR" } }),
@@ -40,6 +42,8 @@ async function main() {
     prisma.user.create({ data: { firstName: "Erwin", lastName: "Smith", email: "aot@aot.com", password: await hash("shinzo"), role: "ADMIN" } }),
     prisma.user.create({ data: { firstName: "Sami", lastName: "Supervisor", email: "sami.supervisor@example.com", password: await hash("supervisorpass"), role: "SUPERVISOR" } }),
     prisma.user.create({ data: { firstName: "Lina", lastName: "Client", email: "lina.client@example.com", password: await hash("clientpass"), role: "CLIENT" } }),
+    prisma.user.create({ data: { firstName: "Jean-Baptiste", lastName: "Gaborieau", email: "jb.gaborieau@gmail.com", password: await hash("hamorebi123"), role: "ADMIN" } }),
+    prisma.user.create({ data: { firstName: "Victor", lastName: "SuperviseurGlobal", email: "superviseur.global@example.com", password: await hash("globalpass"), role: "SUPERVISOR" } }),
   ]);
 
   const sitesData = [
@@ -115,12 +119,20 @@ async function main() {
         data: { assignedComposts: { connect: [{ id: compost.id }] } },
       });
 
-      if (site.name === "Camping du Port") {
-        await prisma.user.update({
-          where: { id: linaClient.id },
-          data: { assignedComposts: { connect: [{ id: compost.id }] } },
-        });
-      }
+      await prisma.user.update({
+        where: { id: linaClient.id },
+        data: { assignedComposts: { connect: [{ id: compost.id }] } },
+      });
+
+      // Nouvel ajout : affecter chaque composteur au superviseur global
+      await prisma.user.update({
+        where: { email: "superviseur.global@example.com" },
+        data: {
+          assignedComposts: {
+            connect: [{ id: compost.id }],
+          },
+        },
+      });
 
       for (let j = 1; j <= 4; j++) {
         const recorderId = j % 2 === 0 ? claireSupervisor.id : alexAgent.id;
@@ -173,12 +185,12 @@ async function main() {
     });
   }
 
-  console.log("✅ Database seeded: composteurs + norms generated.");
+  console.log("✅ Base de données initialisée avec utilisateurs, composteurs, normes et affectations.");
 }
 
 main()
   .catch((e) => {
-    console.error("❌ Seed error:", e);
+    console.error("❌ Erreur lors de l'initialisation :", e);
     process.exit(1);
   })
   .finally(async () => {
