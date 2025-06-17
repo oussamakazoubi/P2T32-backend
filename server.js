@@ -702,7 +702,7 @@ app.delete("/api/composteurs/:id", authMiddleware, adminOnly, async (req, res) =
 
 
 
-app.get("/api/composteurs/:id/report", authMiddleware, supervisorOrAdminOnly, async (req, res) => {
+app.get("/api/composteurs/:id/report", authMiddleware, async (req, res) => {
   const compostId = parseInt(req.params.id);
 
   try {
