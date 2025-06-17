@@ -139,16 +139,23 @@ app.get("/api/logout", (req, res) => {
 
 // --- ROUTES SITES / COMPOSTEURS ---
 
-app.get("/api/stats", authMiddleware, async (req, res) => {
-  const composts = await db.compost.findMany({
-    include: { site: true },
-  });
-  res.json({ composts });
-});
-
 app.get("/api/sites", authMiddleware, async (req, res) => {
   const user = req.session.user;
 
+  // Si on est dans un contexte "carte", on envoie tout
+  if (req.query.forMap === "true") {
+    const sites = await db.site.findMany({
+      select: {
+        id: true,
+        name: true,
+        latitude: true,
+        longitude: true,
+      },
+    });
+    return res.json({ sites });
+  }
+
+  // Sinon comportement normal : filtré selon le rôle
   if (user.role === "ADMIN") {
     const sites = await db.site.findMany({
       include: {
@@ -157,31 +164,32 @@ app.get("/api/sites", authMiddleware, async (req, res) => {
         referents: true,
       },
     });
-    res.json({ sites });
-  } else {
-    const userWithAssignments = await db.user.findUnique({
-      where: { id: user.id },
-      include: {
-        assignedComposts: {
-          include: { site: true },
-        },
-      },
-    });
-
-    const sitesMap = new Map();
-    userWithAssignments.assignedComposts.forEach((compost) => {
-      if (!sitesMap.has(compost.site.id)) {
-        sitesMap.set(compost.site.id, {
-          ...compost.site,
-          composts: [],
-        });
-      }
-      sitesMap.get(compost.site.id).composts.push(compost);
-    });
-
-    res.json({ sites: Array.from(sitesMap.values()) });
+    return res.json({ sites });
   }
+
+  const userWithAssignments = await db.user.findUnique({
+    where: { id: user.id },
+    include: {
+      assignedComposts: {
+        include: { site: true },
+      },
+    },
+  });
+
+  const sitesMap = new Map();
+  userWithAssignments.assignedComposts.forEach((compost) => {
+    if (!sitesMap.has(compost.site.id)) {
+      sitesMap.set(compost.site.id, {
+        ...compost.site,
+        composts: [],
+      });
+    }
+    sitesMap.get(compost.site.id).composts.push(compost);
+  });
+
+  res.json({ sites: Array.from(sitesMap.values()) });
 });
+
 
 app.get("/api/composteurs/:id", authMiddleware, async (req, res) => {
   const user = req.session.user;
