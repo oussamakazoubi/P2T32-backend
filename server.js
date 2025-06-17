@@ -758,7 +758,11 @@ app.get("/api/composteurs/:id/report", authMiddleware, async (req, res) => {
         normViolations.oxygenationMin++;
         details.push({ param: "🧪 Oxygène", value: `${rec.oxygenation}%`, norm: `${norms.oxygenationMin}%` });
       }
-      if (norms.compostMassMax != null && rec.compostMass > norms.compostMassMax) {
+      if (
+          norms.oxygenationMin != null &&
+          rec.oxygenation != null &&
+          rec.oxygenation < norms.oxygenationMin
+          ) {
         normViolations.compostMassMax++;
         details.push({ param: "⚖️ Masse", value: `${rec.compostMass}kg`, norm: `${norms.compostMassMax}kg` });
       }
